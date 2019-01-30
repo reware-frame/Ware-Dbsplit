@@ -19,14 +19,14 @@
 
 	<!-- SplitBizTemplate Entry -->
 
-	<bean name="simpleSplitJdbcTemplate" class="com.robert.dbsplit.core.SimpleSplitJdbcTemplate">
+	<bean name="simpleSplitJdbcTemplate" class="com.ten.ware.dbsplit.core.SimpleSplitJdbcTemplate">
 		<property name="splitTablesHolder" ref="splitTablesHolder" />
 		<property name="readWriteSeparate" value="${dbsplit.readWriteSeparate}" />
 	</bean>
 
 	<!-- SplitTablesHolder -->
 
-	<bean name="splitTablesHolder" class="com.robert.dbsplit.core.SplitTablesHolder"
+	<bean name="splitTablesHolder" class="com.ten.ware.dbsplit.core.SplitTablesHolder"
 		init-method="init">
 		<property name="splitTables">
 			<list>
@@ -37,7 +37,7 @@
 
 	<!-- SplitTables -->
 
-	<bean name="splitTable" class="com.robert.dbsplit.core.SplitTable"
+	<bean name="splitTable" class="com.ten.ware.dbsplit.core.SplitTable"
 		init-method="init">
 
 		<property name="dbNamePrefix" value="test_db" />
@@ -60,7 +60,7 @@
 
 	<!-- SplitNodes -->
 
-	<bean name="splitNode1" class="com.robert.dbsplit.core.SplitNode">
+	<bean name="splitNode1" class="com.ten.ware.dbsplit.core.SplitNode">
 		<property name="masterTemplate" ref="masterTemplate0" />
 		<property name="slaveTemplates">
 			<list>
@@ -69,7 +69,7 @@
 		</property>
 	</bean>
 
-	<bean name="splitNode2" class="com.robert.dbsplit.core.SplitNode">
+	<bean name="splitNode2" class="com.ten.ware.dbsplit.core.SplitNode">
 		<property name="masterTemplate" ref="masterTemplate1" />
 		<property name="slaveTemplates">
 			<list>
