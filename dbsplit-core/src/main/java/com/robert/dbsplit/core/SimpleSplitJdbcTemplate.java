@@ -11,215 +11,219 @@ import com.robert.dbsplit.core.sql.util.OrmUtil;
 import com.robert.dbsplit.core.sql.util.SqlUtil;
 import com.robert.dbsplit.core.sql.util.SqlUtil.SqlRunningBean;
 
+/**
+ * 更上层的API，只需要操作bean
+ */
 public class SimpleSplitJdbcTemplate extends SplitJdbcTemplate implements
-		SimpleSplitJdbcOperations {
+        SimpleSplitJdbcOperations {
 
-	private enum UpdateOper {
-		INSERT, UPDATE, DELETE
-	};
+    private enum UpdateOper {
+        INSERT, UPDATE, DELETE
+    }
 
-	private enum SearchOper {
-		NORMAL, RANGE, FIELD
-	};
 
-	public SimpleSplitJdbcTemplate() {
+    private enum SearchOper {
+        NORMAL, RANGE, FIELD
+    }
 
-	}
+    public SimpleSplitJdbcTemplate() {
 
-	public SimpleSplitJdbcTemplate(List<String> ipPorts, String user,
-			String password, String... tables) {
-		super(ipPorts, user, password, tables);
-	}
+    }
 
-	public SimpleSplitJdbcTemplate(SplitTablesHolder splitTablesHolder) {
-		super(splitTablesHolder);
-	}
+    public SimpleSplitJdbcTemplate(List<String> ipPorts, String user,
+                                   String password, String... tables) {
+        super(ipPorts, user, password, tables);
+    }
 
-	public <K, T> void insert(K splitKey, T bean) {
-		doUpdate(splitKey, bean.getClass(), UpdateOper.INSERT, bean, -1);
-	}
+    public SimpleSplitJdbcTemplate(SplitTablesHolder splitTablesHolder) {
+        super(splitTablesHolder);
+    }
 
-	public <K, T> void update(K splitKey, T bean) {
-		doUpdate(splitKey, bean.getClass(), UpdateOper.UPDATE, bean, -1);
-	}
+    public <K, T> void insert(K splitKey, T bean) {
+        doUpdate(splitKey, bean.getClass(), UpdateOper.INSERT, bean, -1);
+    }
 
-	public <K, T> void delete(K splitKey, long id, Class<T> clazz) {
-		doUpdate(splitKey, clazz, UpdateOper.DELETE, null, id);
-	}
+    public <K, T> void update(K splitKey, T bean) {
+        doUpdate(splitKey, bean.getClass(), UpdateOper.UPDATE, bean, -1);
+    }
 
-	public <K, T> T get(K splitKey, long id, final Class<T> clazz) {
-		return doSelect(splitKey, clazz, "id", new Long(id));
-	}
+    public <K, T> void delete(K splitKey, long id, Class<T> clazz) {
+        doUpdate(splitKey, clazz, UpdateOper.DELETE, null, id);
+    }
 
-	public <K, T> T get(K splitKey, String name, String value,
-			final Class<T> clazz) {
-		return doSelect(splitKey, clazz, name, value);
-	}
+    public <K, T> T get(K splitKey, long id, final Class<T> clazz) {
+        return doSelect(splitKey, clazz, "id", new Long(id));
+    }
 
-	public <K, T> List<T> search(K splitKey, T bean) {
-		return doSearch(splitKey, bean, null, null, null, SearchOper.NORMAL);
-	}
+    public <K, T> T get(K splitKey, String name, String value,
+                        final Class<T> clazz) {
+        return doSelect(splitKey, clazz, name, value);
+    }
 
-	public <K, T> List<T> search(K splitKey, T bean, String name,
-			Object valueFrom, Object valueTo) {
-		return doSearch(splitKey, bean, name, valueFrom, valueTo,
-				SearchOper.RANGE);
-	}
+    public <K, T> List<T> search(K splitKey, T bean) {
+        return doSearch(splitKey, bean, null, null, null, SearchOper.NORMAL);
+    }
 
-	public <K, T> List<T> search(K splitKey, T bean, String name, Object value) {
-		return doSearch(splitKey, bean, name, value, null, SearchOper.FIELD);
-	}
+    public <K, T> List<T> search(K splitKey, T bean, String name,
+                                 Object valueFrom, Object valueTo) {
+        return doSearch(splitKey, bean, name, valueFrom, valueTo,
+                SearchOper.RANGE);
+    }
 
-	protected <K, T> List<T> doSearch(K splitKey, final T bean, String name,
-			Object valueFrom, Object valueTo, SearchOper searchOper) {
-		log.debug(
-				"SimpleSplitJdbcTemplate.doSearch, the split key: {}, the bean: {}, the name: {}, the valueFrom: {}, the valueTo: {}.",
-				splitKey, bean, name, valueFrom, valueTo);
+    public <K, T> List<T> search(K splitKey, T bean, String name, Object value) {
+        return doSearch(splitKey, bean, name, value, null, SearchOper.FIELD);
+    }
 
-		SplitTable splitTable = splitTablesHolder.searchSplitTable(OrmUtil
-				.javaClassName2DbTableName(bean.getClass().getSimpleName()));
+    protected <K, T> List<T> doSearch(K splitKey, final T bean, String name,
+                                      Object valueFrom, Object valueTo, SearchOper searchOper) {
+        log.debug(
+                "SimpleSplitJdbcTemplate.doSearch, the split key: {}, the bean: {}, the name: {}, the valueFrom: {}, the valueTo: {}.",
+                splitKey, bean, name, valueFrom, valueTo);
 
-		SplitStrategy splitStrategy = splitTable.getSplitStrategy();
-		List<SplitNode> splitNdoes = splitTable.getSplitNodes();
+        SplitTable splitTable = splitTablesHolder.searchSplitTable(OrmUtil
+                .javaClassName2DbTableName(bean.getClass().getSimpleName()));
 
-		String dbPrefix = splitTable.getDbNamePrefix();
-		String tablePrefix = splitTable.getTableNamePrefix();
+        SplitStrategy splitStrategy = splitTable.getSplitStrategy();
+        List<SplitNode> splitNdoes = splitTable.getSplitNodes();
 
-		int nodeNo = splitStrategy.getNodeNo(splitKey);
-		int dbNo = splitStrategy.getDbNo(splitKey);
-		int tableNo = splitStrategy.getTableNo(splitKey);
+        String dbPrefix = splitTable.getDbNamePrefix();
+        String tablePrefix = splitTable.getTableNamePrefix();
 
-		log.info(
-				"SimpleSplitJdbcTemplate.doSearch, splitKey={} dbPrefix={} tablePrefix={} nodeNo={} dbNo={} tableNo={}.",
-				splitKey, dbPrefix, tablePrefix, nodeNo, dbNo, tableNo);
+        int nodeNo = splitStrategy.getNodeNo(splitKey);
+        int dbNo = splitStrategy.getDbNo(splitKey);
+        int tableNo = splitStrategy.getTableNo(splitKey);
 
-		SplitNode sn = splitNdoes.get(nodeNo);
-		JdbcTemplate jt = getReadJdbcTemplate(sn);
+        log.info(
+                "SimpleSplitJdbcTemplate.doSearch, splitKey={} dbPrefix={} tablePrefix={} nodeNo={} dbNo={} tableNo={}.",
+                splitKey, dbPrefix, tablePrefix, nodeNo, dbNo, tableNo);
 
-		SqlRunningBean srb = null;
+        SplitNode sn = splitNdoes.get(nodeNo);
+        JdbcTemplate jt = getReadJdbcTemplate(sn);
 
-		switch (searchOper) {
-		case NORMAL:
-			srb = SqlUtil.generateSearchSql(bean, dbPrefix, tablePrefix, dbNo,
-					tableNo);
-			break;
-		case RANGE:
-			srb = SqlUtil.generateSearchSql(bean, name, valueFrom, valueTo,
-					dbPrefix, tablePrefix, dbNo, tableNo);
-			break;
-		case FIELD:
-			srb = SqlUtil.generateSearchSql(bean, name, valueFrom, dbPrefix,
-					tablePrefix, dbNo, tableNo);
-			break;
-		}
+        SqlRunningBean srb = null;
 
-		log.debug(
-				"SimpleSplitJdbcTemplate.doSearch, the split SQL: {}, the split params: {}.",
-				srb.getSql(), srb.getParams());
-		List<T> beans = jt.query(srb.getSql(), srb.getParams(),
-				new RowMapper<T>() {
-					public T mapRow(ResultSet rs, int rowNum)
-							throws SQLException {
-						return (T) OrmUtil.convertRow2Bean(rs, bean.getClass());
-					}
-				});
+        switch (searchOper) {
+            case NORMAL:
+                srb = SqlUtil.generateSearchSql(bean, dbPrefix, tablePrefix, dbNo,
+                        tableNo);
+                break;
+            case RANGE:
+                srb = SqlUtil.generateSearchSql(bean, name, valueFrom, valueTo,
+                        dbPrefix, tablePrefix, dbNo, tableNo);
+                break;
+            case FIELD:
+                srb = SqlUtil.generateSearchSql(bean, name, valueFrom, dbPrefix,
+                        tablePrefix, dbNo, tableNo);
+                break;
+        }
 
-		log.info("SimpleSplitJdbcTemplate.doSearch, search result: {}.", beans);
-		return beans;
+        log.debug(
+                "SimpleSplitJdbcTemplate.doSearch, the split SQL: {}, the split params: {}.",
+                srb.getSql(), srb.getParams());
+        List<T> beans = jt.query(srb.getSql(), srb.getParams(),
+                new RowMapper<T>() {
+                    public T mapRow(ResultSet rs, int rowNum)
+                            throws SQLException {
+                        return (T) OrmUtil.convertRow2Bean(rs, bean.getClass());
+                    }
+                });
 
-	}
+        log.info("SimpleSplitJdbcTemplate.doSearch, search result: {}.", beans);
+        return beans;
 
-	protected <K, T> T doSelect(K splitKey, final Class<T> clazz, String name,
-			Object value) {
-		log.debug(
-				"SimpleSplitJdbcTemplate.doSelect, the split key: {}, the clazz: {}, where {} = {}.",
-				splitKey, clazz, name, value);
+    }
 
-		SplitTable splitTable = splitTablesHolder.searchSplitTable(OrmUtil
-				.javaClassName2DbTableName(clazz.getSimpleName()));
+    protected <K, T> T doSelect(K splitKey, final Class<T> clazz, String name,
+                                Object value) {
+        log.debug(
+                "SimpleSplitJdbcTemplate.doSelect, the split key: {}, the clazz: {}, where {} = {}.",
+                splitKey, clazz, name, value);
 
-		SplitStrategy splitStrategy = splitTable.getSplitStrategy();
-		List<SplitNode> splitNdoes = splitTable.getSplitNodes();
+        SplitTable splitTable = splitTablesHolder.searchSplitTable(OrmUtil
+                .javaClassName2DbTableName(clazz.getSimpleName()));
 
-		String dbPrefix = splitTable.getDbNamePrefix();
-		String tablePrefix = splitTable.getTableNamePrefix();
+        SplitStrategy splitStrategy = splitTable.getSplitStrategy();
+        List<SplitNode> splitNdoes = splitTable.getSplitNodes();
 
-		int nodeNo = splitStrategy.getNodeNo(splitKey);
-		int dbNo = splitStrategy.getDbNo(splitKey);
-		int tableNo = splitStrategy.getTableNo(splitKey);
+        String dbPrefix = splitTable.getDbNamePrefix();
+        String tablePrefix = splitTable.getTableNamePrefix();
 
-		log.info(
-				"SimpleSplitJdbcTemplate.doSelect, splitKey={} dbPrefix={} tablePrefix={} nodeNo={} dbNo={} tableNo={}.",
-				splitKey, dbPrefix, tablePrefix, nodeNo, dbNo, tableNo);
+        int nodeNo = splitStrategy.getNodeNo(splitKey);
+        int dbNo = splitStrategy.getDbNo(splitKey);
+        int tableNo = splitStrategy.getTableNo(splitKey);
 
-		SplitNode sn = splitNdoes.get(nodeNo);
-		JdbcTemplate jt = getReadJdbcTemplate(sn);
+        log.info(
+                "SimpleSplitJdbcTemplate.doSelect, splitKey={} dbPrefix={} tablePrefix={} nodeNo={} dbNo={} tableNo={}.",
+                splitKey, dbPrefix, tablePrefix, nodeNo, dbNo, tableNo);
 
-		SqlRunningBean srb = SqlUtil.generateSelectSql(name, value, clazz,
-				dbPrefix, tablePrefix, dbNo, tableNo);
+        SplitNode sn = splitNdoes.get(nodeNo);
+        JdbcTemplate jt = getReadJdbcTemplate(sn);
 
-		log.debug(
-				"SimpleSplitJdbcTemplate.doSelect, the split SQL: {}, the split params: {}.",
-				srb.getSql(), srb.getParams());
-		T bean = jt.queryForObject(srb.getSql(), srb.getParams(),
-				new RowMapper<T>() {
-					public T mapRow(ResultSet rs, int rowNum)
-							throws SQLException {
-						return OrmUtil.convertRow2Bean(rs, clazz);
-					}
-				});
+        SqlRunningBean srb = SqlUtil.generateSelectSql(name, value, clazz,
+                dbPrefix, tablePrefix, dbNo, tableNo);
 
-		log.info("SimpleSplitJdbcTemplate.doSelect, select result: {}.", bean);
-		return bean;
-	}
+        log.debug(
+                "SimpleSplitJdbcTemplate.doSelect, the split SQL: {}, the split params: {}.",
+                srb.getSql(), srb.getParams());
+        T bean = jt.queryForObject(srb.getSql(), srb.getParams(),
+                new RowMapper<T>() {
+                    public T mapRow(ResultSet rs, int rowNum)
+                            throws SQLException {
+                        return OrmUtil.convertRow2Bean(rs, clazz);
+                    }
+                });
 
-	protected <K, T> void doUpdate(K splitKey, final Class<?> clazz,
-			UpdateOper updateOper, T bean, long id) {
-		log.debug(
-				"SimpleSplitJdbcTemplate.doUpdate, the split key: {}, the clazz: {}, the updateOper: {}, the split bean: {}, the ID: {}.",
-				splitKey, clazz, updateOper, bean, id);
+        log.info("SimpleSplitJdbcTemplate.doSelect, select result: {}.", bean);
+        return bean;
+    }
 
-		SplitTable splitTable = splitTablesHolder.searchSplitTable(OrmUtil
-				.javaClassName2DbTableName(clazz.getSimpleName()));
+    protected <K, T> void doUpdate(K splitKey, final Class<?> clazz,
+                                   UpdateOper updateOper, T bean, long id) {
+        log.debug(
+                "SimpleSplitJdbcTemplate.doUpdate, the split key: {}, the clazz: {}, the updateOper: {}, the split bean: {}, the ID: {}.",
+                splitKey, clazz, updateOper, bean, id);
 
-		SplitStrategy splitStrategy = splitTable.getSplitStrategy();
-		List<SplitNode> splitNdoes = splitTable.getSplitNodes();
+        SplitTable splitTable = splitTablesHolder.searchSplitTable(OrmUtil
+                .javaClassName2DbTableName(clazz.getSimpleName()));
 
-		String dbPrefix = splitTable.getDbNamePrefix();
-		String tablePrefix = splitTable.getTableNamePrefix();
+        SplitStrategy splitStrategy = splitTable.getSplitStrategy();
+        List<SplitNode> splitNdoes = splitTable.getSplitNodes();
 
-		int nodeNo = splitStrategy.getNodeNo(splitKey);
-		int dbNo = splitStrategy.getDbNo(splitKey);
-		int tableNo = splitStrategy.getTableNo(splitKey);
+        String dbPrefix = splitTable.getDbNamePrefix();
+        String tablePrefix = splitTable.getTableNamePrefix();
 
-		log.info(
-				"SimpleSplitJdbcTemplate.doUpdate, splitKey={} dbPrefix={} tablePrefix={} nodeNo={} dbNo={} tableNo={}.",
-				splitKey, dbPrefix, tablePrefix, nodeNo, dbNo, tableNo);
+        int nodeNo = splitStrategy.getNodeNo(splitKey);
+        int dbNo = splitStrategy.getDbNo(splitKey);
+        int tableNo = splitStrategy.getTableNo(splitKey);
 
-		SplitNode sn = splitNdoes.get(nodeNo);
-		JdbcTemplate jt = getWriteJdbcTemplate(sn);
+        log.info(
+                "SimpleSplitJdbcTemplate.doUpdate, splitKey={} dbPrefix={} tablePrefix={} nodeNo={} dbNo={} tableNo={}.",
+                splitKey, dbPrefix, tablePrefix, nodeNo, dbNo, tableNo);
 
-		SqlRunningBean srb = null;
-		switch (updateOper) {
-		case INSERT:
-			srb = SqlUtil.generateInsertSql(bean, dbPrefix, tablePrefix, dbNo,
-					tableNo);
-			break;
-		case UPDATE:
-			srb = SqlUtil.generateUpdateSql(bean, dbPrefix, tablePrefix, dbNo,
-					tableNo);
-			break;
-		case DELETE:
-			srb = SqlUtil.generateDeleteSql(id, clazz, dbPrefix, tablePrefix,
-					dbNo, tableNo);
-			break;
-		}
+        SplitNode sn = splitNdoes.get(nodeNo);
+        JdbcTemplate jt = getWriteJdbcTemplate(sn);
 
-		log.debug(
-				"SimpleSplitJdbcTemplate.doUpdate, the split SQL: {}, the split params: {}.",
-				srb.getSql(), srb.getParams());
-		long updateCount = jt.update(srb.getSql(), srb.getParams());
-		log.info("SimpleSplitJdbcTemplate.doUpdate, update record num: {}.",
-				updateCount);
-	}
+        SqlRunningBean srb = null;
+        switch (updateOper) {
+            case INSERT:
+                srb = SqlUtil.generateInsertSql(bean, dbPrefix, tablePrefix, dbNo,
+                        tableNo);
+                break;
+            case UPDATE:
+                srb = SqlUtil.generateUpdateSql(bean, dbPrefix, tablePrefix, dbNo,
+                        tableNo);
+                break;
+            case DELETE:
+                srb = SqlUtil.generateDeleteSql(id, clazz, dbPrefix, tablePrefix,
+                        dbNo, tableNo);
+                break;
+        }
+
+        log.debug(
+                "SimpleSplitJdbcTemplate.doUpdate, the split SQL: {}, the split params: {}.",
+                srb.getSql(), srb.getParams());
+        long updateCount = jt.update(srb.getSql(), srb.getParams());
+        log.info("SimpleSplitJdbcTemplate.doUpdate, update record num: {}.",
+                updateCount);
+    }
 }
