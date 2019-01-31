@@ -18,6 +18,12 @@ Dbsplit扩展了Spring的JdbcTemplate, 在JdbcTemplate上增加了分库分表�
 
 如果你在寻找数据库分库分表的轻量级解决方案，请参考Dbsplit的实现和应用场景，它是一个兼容Spring JDBC的并且支持分库分表的轻量级的数据库中间件，使用起来简单方便，性能接近于直接使用JDBC，并且能够无缝的与Spring相结合，又具有很好的可维护性。
 
+## dbsplit流程图
+
+![流程图](doc/流程图.PNG)
+
+## [源码读后感](doc/读后感.md)
+
 ## 怎么使用dbsplit?
 
 我们已经完整的实现了一个具有分库分表功能的框架dbsplit，现在，让我们提供一个示例演示在我们的应用中怎么来使用这个框架，大家也可以参考dbsplit项目中dbsplit-core/src/main/test中的源代码。
