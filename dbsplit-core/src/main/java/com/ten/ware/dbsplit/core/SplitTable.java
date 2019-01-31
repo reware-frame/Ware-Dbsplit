@@ -12,19 +12,33 @@ public class SplitTable {
     private int dbNum;
     private int tableNum;
 
+    /**
+     * 切分类型，默认垂直切分
+     */
     private SplitStrategyType splitStrategyType = SplitStrategyType.VERTICAL;
+    /**
+     * 分片策略
+     */
     private SplitStrategy splitStrategy;
+    /**
+     * 节点结合
+     */
     private List<SplitNode> splitNodes;
 
+    /**
+     * 读写分离，默认开启
+     */
     private boolean readWriteSeparate = true;
 
     public void init() {
-        if (splitStrategyType == SplitStrategyType.VERTICAL)
-            this.splitStrategy = new VerticalHashSplitStrategy(
-                    splitNodes.size(), dbNum, tableNum);
-        else if (splitStrategyType == SplitStrategyType.HORIZONTAL)
-            this.splitStrategy = new HorizontalHashSplitStrategy(
-                    splitNodes.size(), dbNum, tableNum);
+        // 垂直切分
+        if (splitStrategyType == SplitStrategyType.VERTICAL) {
+            this.splitStrategy = new VerticalHashSplitStrategy(splitNodes.size(), dbNum, tableNum);
+        }
+        // 水平切分
+        else if (splitStrategyType == SplitStrategyType.HORIZONTAL) {
+            this.splitStrategy = new HorizontalHashSplitStrategy(splitNodes.size(), dbNum, tableNum);
+        }
     }
 
     public void setSplitStrategyType(String splitStrategyType) {

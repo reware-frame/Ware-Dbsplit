@@ -37,6 +37,7 @@ public class SimpleSplitJdbcTemplate extends SplitJdbcTemplate implements
         super(splitTablesHolder);
     }
 
+    @Override
     public <K, T> void insert(K splitKey, T bean) {
         doUpdate(splitKey, bean.getClass(), UpdateOper.INSERT, bean, -1);
     }
@@ -49,10 +50,12 @@ public class SimpleSplitJdbcTemplate extends SplitJdbcTemplate implements
         doUpdate(splitKey, clazz, UpdateOper.DELETE, null, id);
     }
 
+    @Override
     public <K, T> T get(K splitKey, long id, final Class<T> clazz) {
         return doSelect(splitKey, clazz, "id", new Long(id));
     }
 
+    @Override
     public <K, T> T get(K splitKey, String name, String value,
                         final Class<T> clazz) {
         return doSelect(splitKey, clazz, name, value);
@@ -119,12 +122,7 @@ public class SimpleSplitJdbcTemplate extends SplitJdbcTemplate implements
                 "SimpleSplitJdbcTemplate.doSearch, the split SQL: {}, the split params: {}.",
                 srb.getSql(), srb.getParams());
         List<T> beans = jt.query(srb.getSql(), srb.getParams(),
-                new RowMapper<T>() {
-                    public T mapRow(ResultSet rs, int rowNum)
-                            throws SQLException {
-                        return (T) OrmUtil.convertRow2Bean(rs, bean.getClass());
-                    }
-                });
+                (rs, rowNum) -> (T) OrmUtil.convertRow2Bean(rs, bean.getClass()));
 
         log.info("SimpleSplitJdbcTemplate.doSearch, search result: {}.", beans);
         return beans;

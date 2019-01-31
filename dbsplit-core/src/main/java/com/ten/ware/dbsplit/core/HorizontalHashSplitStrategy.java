@@ -1,7 +1,7 @@
 package com.ten.ware.dbsplit.core;
 
 /**
- * 水平下标策略
+ * 水平下标策略，hash切分
  */
 public class HorizontalHashSplitStrategy implements SplitStrategy {
     private int portNum;
@@ -36,8 +36,9 @@ public class HorizontalHashSplitStrategy implements SplitStrategy {
 
     private int calcHashCode(Object splitKey) {
         int hashCode = splitKey.hashCode();
-        if (hashCode < 0)
+        if (hashCode < 0) {
             hashCode = -hashCode;
+        }
 
         return hashCode;
     }

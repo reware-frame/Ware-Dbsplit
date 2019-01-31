@@ -12,6 +12,9 @@ import com.alibaba.druid.sql.parser.Token;
 import com.ten.ware.dbsplit.core.sql.parser.SplitSqlStructure.SqlType;
 import com.ten.ware.dbsplit.excep.NotSupportedException;
 
+/**
+ * SQL分片解析
+ */
 public class SplitSqlParserDefImpl implements SplitSqlParser {
     private static final Logger log = LoggerFactory
             .getLogger(SplitSqlParserDefImpl.class);
@@ -25,13 +28,19 @@ public class SplitSqlParserDefImpl implements SplitSqlParser {
         log.info("Default SplitSqlParserDefImpl is used.");
     }
 
+    /**
+     * SQL分片解析方法：使用阿里巴巴druid库进行
+     */
+    @Override
     public SplitSqlStructure parseSplitSql(String sql) {
         SplitSqlStructure splitSqlStructure = cache.get(sql);
 
+        // 缓存
         // Don't use if contains then get, race conditon may happens due to LRU
         // map
-        if (splitSqlStructure != null)
+        if (splitSqlStructure != null) {
             return splitSqlStructure;
+        }
 
         splitSqlStructure = new SplitSqlStructure();
 
@@ -46,6 +55,7 @@ public class SplitSqlParserDefImpl implements SplitSqlParser {
 
         // Need to opertimize for better performance
 
+        // alibaba SQL解析库
         Lexer lexer = new Lexer(sql);
         do {
             lexer.nextToken();
@@ -54,7 +64,7 @@ public class SplitSqlParserDefImpl implements SplitSqlParser {
                 break;
             }
 
-            if (tok.name != null)
+            if (tok.name != null) {
                 switch (tok.name) {
                     case "SELECT":
                         splitSqlStructure.setSqlType(SqlType.SELECT);
@@ -74,22 +84,28 @@ public class SplitSqlParserDefImpl implements SplitSqlParser {
                         break;
 
                     case "INTO":
-                        if (SqlType.INSERT.equals(splitSqlStructure.getSqlType()))
+                        if (SqlType.INSERT.equals(splitSqlStructure.getSqlType())) {
                             inProcess = true;
+                        }
                         break;
 
                     case "FROM":
                         if (SqlType.SELECT.equals(splitSqlStructure.getSqlType())
                                 || SqlType.DELETE.equals(splitSqlStructure
-                                .getSqlType()))
+                                .getSqlType())) {
                             inProcess = true;
+                        }
+                        break;
+                    default:
                         break;
                 }
+            }
 
-            if (sebsequent)
+            if (sebsequent) {
                 sbSebsequentPart.append(
                         tok == Token.IDENTIFIER ? lexer.stringVal() : tok.name)
                         .append(" ");
+            }
 
             if (inProcess) {
                 if (dbName == null && tok == Token.IDENTIFIER) {
@@ -104,16 +120,18 @@ public class SplitSqlParserDefImpl implements SplitSqlParser {
                 }
             }
 
-            if (previous)
+            if (previous) {
                 sbPreviousPart.append(
                         tok == Token.IDENTIFIER ? lexer.stringVal() : tok.name)
                         .append(" ");
+            }
 
         } while (true);
 
-        if (StringUtils.isEmpty(dbName) || StringUtils.isEmpty(tableName))
+        if (StringUtils.isEmpty(dbName) || StringUtils.isEmpty(tableName)) {
             throw new NotSupportedException("The split sql is not supported: "
                     + sql);
+        }
 
         splitSqlStructure.setDbName(dbName);
         splitSqlStructure.setTableName(tableName);
@@ -122,8 +140,9 @@ public class SplitSqlParserDefImpl implements SplitSqlParser {
         splitSqlStructure.setSebsequentPart(sbSebsequentPart.toString());
 
         // if race condition, it is not severe
-        if (!cache.containsKey(splitSqlStructure))
+        if (!cache.containsKey(splitSqlStructure)) {
             cache.put(sql, splitSqlStructure);
+        }
 
         return splitSqlStructure;
     }

@@ -20,7 +20,7 @@ public class FieldVisitor<T> {
     }
 
     /**
-     * 传入接口实现类
+     * TODO 传入接口实现类
      */
     public void visit(FieldHandler fieldHandler) {
         List<Field> fields = ReflectionUtil.getClassEffectiveFields(bean.getClass());
@@ -29,7 +29,7 @@ public class FieldVisitor<T> {
         for (int i = 0; i < fields.size(); i++) {
             Field field = fields.get(i);
 
-            Object value = null;
+            Object value;
             try {
                 boolean access = field.isAccessible();
 
@@ -38,12 +38,15 @@ public class FieldVisitor<T> {
 
                 if (value != null) {
                     if (value instanceof Number
-                            && ((Number) value).doubleValue() == -1d)
+                            && ((Number) value).doubleValue() == -1d) {
                         continue;
+                    }
 
-                    if (value instanceof List)
+                    if (value instanceof List) {
                         continue;
+                    }
 
+                    // 传入参数，然后调用传入的lambda方法
                     fieldHandler.handle(count++, field, value);
                 }
 

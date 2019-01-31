@@ -3,14 +3,12 @@ package com.ten.ware.dbsplit.core.sql.parser;
 import org.springframework.util.StringUtils;
 
 /**
- * 存储SQL对象
+ * 存储分片后的SQL对象
  */
 public class SplitSqlStructure {
     public enum SqlType {
         SELECT, INSERT, UPDATE, DELETE
     }
-
-    ;
 
     private SqlType sqlType;
 

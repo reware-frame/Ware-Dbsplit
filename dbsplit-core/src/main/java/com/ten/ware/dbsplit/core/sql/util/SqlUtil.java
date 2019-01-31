@@ -243,19 +243,19 @@ public abstract class SqlUtil {
 
         final List<Object> params = new LinkedList<Object>();
 
-        new FieldVisitor<T>(bean).visit(new FieldHandler() {
-            public void handle(int index, Field field, Object value) {
-                if (index != 0)
-                    sb.append(" and ");
-
-                sb.append(OrmUtil.javaFieldName2DbFieldName(field.getName()))
-                        .append("=? ");
-
-                if (value instanceof Enum)
-                    value = ((Enum<?>) value).ordinal();
-
-                params.add(value);
+        new FieldVisitor<T>(bean).visit((index, field, value) -> {
+            if (index != 0) {
+                sb.append(" and ");
             }
+
+            sb.append(OrmUtil.javaFieldName2DbFieldName(field.getName()))
+                    .append("=? ");
+
+            if (value instanceof Enum) {
+                value = ((Enum<?>) value).ordinal();
+            }
+
+            params.add(value);
         });
 
         if (!StringUtils.isEmpty(name) && !StringUtils.isEmpty(valueFrom)
