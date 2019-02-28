@@ -42,10 +42,12 @@ public class SimpleSplitJdbcTemplate extends SplitJdbcTemplate implements
         doUpdate(splitKey, bean.getClass(), UpdateOper.INSERT, bean, -1);
     }
 
+    @Override
     public <K, T> void update(K splitKey, T bean) {
         doUpdate(splitKey, bean.getClass(), UpdateOper.UPDATE, bean, -1);
     }
 
+    @Override
     public <K, T> void delete(K splitKey, long id, Class<T> clazz) {
         doUpdate(splitKey, clazz, UpdateOper.DELETE, null, id);
     }
@@ -61,16 +63,19 @@ public class SimpleSplitJdbcTemplate extends SplitJdbcTemplate implements
         return doSelect(splitKey, clazz, name, value);
     }
 
+    @Override
     public <K, T> List<T> search(K splitKey, T bean) {
         return doSearch(splitKey, bean, null, null, null, SearchOper.NORMAL);
     }
 
+    @Override
     public <K, T> List<T> search(K splitKey, T bean, String name,
                                  Object valueFrom, Object valueTo) {
         return doSearch(splitKey, bean, name, valueFrom, valueTo,
                 SearchOper.RANGE);
     }
 
+    @Override
     public <K, T> List<T> search(K splitKey, T bean, String name, Object value) {
         return doSearch(splitKey, bean, name, value, null, SearchOper.FIELD);
     }
